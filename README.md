@@ -32,12 +32,10 @@ produce two-column sections inside documents (HTML, LaTeX) or slides
 
 However, it is somewhat cumbersome in the sense that the user should pay
 extra attention to the number of consecutive colons (:) starting the div
-blocks, in this case 4 for columns and 3 for rows, but any consistently different number can be applied to both.
+blocks, in this case 4 for `.columns` and 3 for `.column`, but any consistently different number can be applied to both.
 
-This filter tries to simplify this notation using a new div called
-`twocol` and using an [horizontal
-rule](https://riptutorial.com/markdown/example/2522/horizontal-rules) as
-the column separator. For instance, the code above turns into:
+This filter simplifies this notation using a new div called
+`twocol` and an [horizontal rule](https://riptutorial.com/markdown/example/2522/horizontal-rules) as the column separator. For instance, the code above turns into:
 
 ``` markdown
 ::: twocol
@@ -58,9 +56,7 @@ Line 5
 The column delimiter is a horizontal rule
 
 Formatting can be changed by passing the options `align` or `width`.
-These should be given by a comma-separated string, with the values for
-the left and right columns, respectively. In this case, the div syntax
-is the following:
+These should be given by a comma-separated string, with the left and right columns' values, respectively. In this case, the Div syntax is the following:
 
 ``` markdown
 ::: {.twocol width="40%,60%" align="l,r"}
