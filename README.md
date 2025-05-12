@@ -1,18 +1,14 @@
-Georgios Pappas Jr
-2025-05-11
-
-# Quarto/Pandoc filter to create columns
+# 🌒 Quarto/Pandoc filter to create columns
 
 ## Introduction
 
 A [Pandoc](https://www.pandoc.org) [Pandoc Lua
 filter](https://pandoc.org/lua-filters.html) that provides an easier
 notation to create columns in documents, especially for Beamer or
-revealjs presentations.
+reveal.js presentations.
 
-In [Quarto](https://www.quarto.org), the traditional way of creating
-columns in a markdown document using quarto is by means of using the
-`.columns` Div:
+In [Quarto](https://www.quarto.org), the traditional way of creating columns in a markdown document is by using the special [fenced Div](https://pandoc.org/demo/example33/8.18-divs-and-spans.html) 
+`.columns` :
 
 ``` markdown
 :::: {.columns}
@@ -31,13 +27,12 @@ Right contents...
 This special [Quarto
 syntax](https://quarto.org/docs/presentations/beamer.html#multiple-columns)
 contains several customization options and is an effective way to
-produce two-column sections inside documents (HTML,LaTeX) or slides
+produce two-column sections inside documents (HTML, LaTeX) or slides
 (Beamer).
 
 However, it is somewhat cumbersome in the sense that the user should pay
 extra attention to the number of consecutive colons (:) starting the div
-blocks, in this case 4 for columns and 3 for column, but any consistent
-different number can be applied to both.
+blocks, in this case 4 for columns and 3 for rows, but any consistently different number can be applied to both.
 
 This filter tries to simplify this notation using a new div called
 `twocol` and using an [horizontal
@@ -51,7 +46,6 @@ Left contents...
 
 ---
 
-
 Right contents...
 
 :::
@@ -61,7 +55,7 @@ Line 1
 The block name
 
 Line 5  
-Column delimiter is an horizontal rule
+The column delimiter is a horizontal rule
 
 Formatting can be changed by passing the options `align` or `width`.
 These should be given by a comma-separated string, with the values for
@@ -73,7 +67,7 @@ is the following:
 
 Left contents...
 
----
+* * *
 
 Right contents...
 
