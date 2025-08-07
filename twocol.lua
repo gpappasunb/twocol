@@ -115,10 +115,9 @@ end
 --- Process the attributes named align and width splitting them to a table with left and right tables, which in turn contain align and width keys, if provided.
 -- @param attrs a table containing the attributes, such as in `div.attributes` propety in pandoc 
 local function process_attributes(attrs)
-  
 	columns_attrs = {
-		left = {},
-		right = {},
+		left = {align="top",width="50%"},
+		right = {align="top",width="50%"}
 	}
 
 	for _, attr_name in ipairs({ "align", "width" }) do
@@ -165,30 +164,27 @@ function Div(div,attrs)
 
 	-- Process attributes
 	local columns_attrs = process_attributes(div.attributes)
+	local left_attrs = pandoc.Attr('',{'column',"left-content"}, table.unpack(columns_attrs.left))
+	local right_attrs = pandoc.Attr('',{'column',"right-content"}, table.unpack(columns_attrs.left))
 
 	-- Split content into two columns, based on the position of the ruler (HorizontalRule)
 	local left_content  = split_list(div.content, 1, ruler_pos - 1)
 	local right_content = split_list(div.content, ruler_pos + 1)
-  
+
 	--- Create column divs
 	--local left_div  = pandoc.Div(left_content, { class = "column", attributes = columns_attrs.left })
-  --- Left (upper) contents
-  -- Attributes
-  local left_attrs = pandoc.Attr('',{'column',"left-content"}, table.unpack(columns_attrs.left))
-  -- The div wrapped in a List
-  local left_div  = pandoc.List({pandoc.Div(left_content, left_attrs)})
-  
-  ----- Right (lower) contents
-  -- Attributes
-  local right_attrs = pandoc.Attr('',{'column',"right-content"}, table.unpack(columns_attrs.left))
-  ---- Alternative to set the attributes
-  -- right_div.attr = {id='',class="column", table.unpack(columns_attrs.right)}
+	--- Left (upper) contents
+	-- Attributes
+	-- The div wrapped in a List
+	local left_div  = pandoc.List({pandoc.Div(left_content, left_attrs)})
+
+	----- Right (lower) contents
 	local right_div = pandoc.Div(right_content,right_attrs)
   right_div = pandoc.List({right_div})
   
+	--- Setting its attributes. Remember that align and width attributes were removed
+	attrs = pandoc.Attr('', { "columns" } , div.attributes)
   -------- Parent div is the columns
-  --- Setting its attributes. Remember that align and width attributes were removed
-  attrs = pandoc.Attr('', { "columns" } , div.attributes)
   -- Merging the two columns
   local all_cols = left_div .. right_div
   --- Parent div contains the columns as children
