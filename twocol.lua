@@ -116,8 +116,8 @@ end
 -- @param attrs a table containing the attributes, such as in `div.attributes` propety in pandoc 
 local function process_attributes(attrs)
 	columns_attrs = {
-		left = {align="top",width="50%"},
-		right = {align="top",width="50%"}
+		left = {{align="top"},{width="50%"}},
+		right = {{align="top"},{width="50%"}}
 	}
 
 	for _, attr_name in ipairs({ "align", "width" }) do
