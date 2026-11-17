@@ -206,16 +206,44 @@ location.
 
 ### Quarto
 
-    quarto install extension gpappasunb/twocol
+Install the latest release in the folder of your document or project:
+
+``` bash
+quarto add gpappasunb/twocol
+```
+
+To install a specific version, add its tag. Every version is listed on the
+[releases page](https://github.com/gpappasunb/twocol/releases), with its zip
+file:
+
+``` bash
+quarto add gpappasunb/twocol@v1.2.0
+```
 
 Add the filter to the document metadata:
 
 ``` markdown
 ---
 filters:
-  - twocol.lua
+  - twocol
 ---
 ```
+
+## Releasing a new version
+
+1. Change `twocol.lua` and copy it to `_extensions/twocol/twocol.lua`: the
+   two files must be identical.
+2. Set the new `version` in `_extensions/twocol/_extension.yaml`, and commit.
+3. Tag the commit with the same version and push the tag:
+
+   ``` bash
+   git tag -a v1.3.0 -m "twocol 1.3.0"
+   git push origin main v1.3.0
+   ```
+
+Pushing the tag runs `.github/workflows/release.yml`. It checks that the tag
+matches the version and that the two filter files are identical, then
+publishes a GitHub release with the extension zip.
 
 # Author
 
