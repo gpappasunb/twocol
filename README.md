@@ -81,8 +81,11 @@ Right contents...
 
 | Attribute | Description |
 |:----------|:------------|
-| `width`   | Column width, e.g. `"30%,70%"` |
+| `width`   | Column width, e.g. `"30%,70%"`. In a stacked layout, the panel heights instead |
+| `size`    | Alias of `width` |
 | `align`   | Vertical alignment: `top`, `top-baseline`, `center` or `bottom` |
+| `direction` | `vertical` (default): panels side by side. `horizontal`: panels stacked |
+| `stack`   | `true` is the same as `direction="horizontal"` |
 
 Other attributes and classes are kept on the outer `columns` div, so
 Pandoc's own column options still work, for example `.onlytextwidth` or
@@ -91,6 +94,37 @@ Pandoc's own column options still work, for example `.onlytextwidth` or
 Defaults: in HTML each column is 50% wide and top-aligned. Other formats get
 no defaults, so Pandoc's own defaults apply (in Beamer, two columns of
 `0.48\linewidth`).
+
+### Stacked panels
+
+With `direction="horizontal"`, or `stack="true"`, the two parts are stacked:
+the content above the rule goes on top, the content below it underneath.
+
+``` markdown
+::: {.twocol direction="horizontal" size="30%,70%"}
+Top panel
+
+---
+
+Bottom panel
+:::
+```
+
+- In HTML and Reveal.js each panel takes the full width. Without a size,
+  each panel takes the height of its content.
+- `width` (or its alias `size`) sets the panel heights. In Reveal.js, the
+  block then takes the height left on the slide and shares it between the
+  panels. In other HTML output, the heights cannot be set, because the page
+  has no fixed height.
+- A fitted image (`fit`, below) in a panel without a size takes all the
+  height left on the slide.
+- A panel with a size does not grow with its content: text taller than the
+  panel runs outside it. Keep sized panels short, or leave out the size.
+- In every other format (Beamer, LaTeX, Word, ...) a stacked block is just
+  the first part followed by the second, with no columns.
+
+If `stack` and `direction` disagree, `direction` is used; if both `width` and
+`size` are given, `width` is used. The filter prints a warning in both cases.
 
 ### Attributes for HTML and Reveal.js only
 

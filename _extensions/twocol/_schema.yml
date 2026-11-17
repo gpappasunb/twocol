@@ -9,7 +9,21 @@ attributes:
     width:
       type: string
       default: "50%,50%"
-      description: "Column widths. Use one value for both columns or comma-separated left/right values. Default 50% each in HTML only."
+      description: "Column widths, or panel heights in a stacked layout. One value for both panels or comma-separated values (left,right or top,bottom). Default 50% each for columns in HTML only."
+    size:
+      type: string
+      description: "Alias of width."
+    direction:
+      type: string
+      enum:
+        - vertical
+        - horizontal
+      default: vertical
+      description: "vertical: panels side by side (columns). horizontal: panels stacked, the first above the second."
+    stack:
+      type: boolean
+      default: false
+      description: "true is the same as direction=horizontal: the panels are stacked."
     align:
       type: string
       default: "top,top"

@@ -20,8 +20,19 @@ the first for the left column and the second for the right column.
 
 All formats:
 
-  width   Column width, e.g. "40%,60%".
-  align   Vertical alignment: top, top-baseline, center, bottom.
+  width       Column width, e.g. "40%,60%". In a stacked layout (see
+              below), the height of each panel instead.
+  size        Alias of width.
+  align       Vertical alignment: top, top-baseline, center, bottom.
+  direction   vertical (default): the panels side by side, as columns.
+              horizontal: the panels stacked, the first above the second.
+  stack       "true" is the same as direction="horizontal".
+
+A stacked layout in HTML and Reveal.js gives each panel the full width; in
+Reveal.js, a `width`/`size` makes the block take the height left on the
+slide and shares it between the panels. In every other format (Beamer,
+LaTeX, ...), a stacked layout is just the first part followed by the
+second, with no columns.
 
 HTML and Reveal.js only (removed from every other output format, so they
 never change Beamer or LaTeX output):
@@ -47,7 +58,7 @@ formats get no defaults, so Pandoc's own column defaults apply.
 
 Author: Georgios Pappas Jr
 Institution: University of Brasilia (UnB) - Brazil
-Version: 1.1.0
+Version: 1.2.0
 --]]
 
 -- The class of the div that triggers the filter
@@ -80,20 +91,37 @@ local CSS = [[
   width: 100%;
   height: auto;
 }
-/* twocol: fitted images, Reveal.js: the block takes the height left on
-   the slide and each fitted image the height left in its column */
-.reveal .slides section:has(> .twocol .twocol-fit) {
+/* twocol: stacked panels (direction="horizontal" or stack="true") */
+.columns.twocol.twocol-stack {
+  display: flex;
+  flex-direction: column;
+}
+.columns.twocol.twocol-stack > .column {
+  width: 100%;
+  min-height: 0;
+}
+/* twocol, Reveal.js: a block with fitted images, or with sized stacked
+   panels (twocol-fill), takes the height left on the slide */
+.reveal .slides section:has(> .twocol.twocol-fill) {
   display: flex !important;
   flex-direction: column;
 }
-.reveal .slides section[style*="display: none"]:has(> .twocol .twocol-fit) {
+.reveal .slides section[style*="display: none"]:has(> .twocol.twocol-fill) {
   display: none !important;
 }
-.reveal .slides section > .columns.twocol:has(.twocol-fit) {
+.reveal .slides section > .columns.twocol.twocol-fill {
   display: flex;
   flex: 1 1 0;
   min-height: 0;
   align-items: stretch;
+}
+/* A stacked panel without a size: its content height, or, when it has a
+   fitted image, all the height left. A size is set inline as flex-basis. */
+.reveal .slides .columns.twocol.twocol-stack > .column {
+  flex: 0 0 auto;
+}
+.reveal .slides .columns.twocol.twocol-stack > .column.twocol-fit {
+  flex: 1 1 0;
 }
 .reveal .slides .columns.twocol > .column.twocol-fit {
   display: flex;
@@ -189,10 +217,64 @@ local function fit_mode(value)
   return mode
 end
 
+local TRUE_VALUES = { ["true"] = true, yes = true, ["1"] = true }
+local FALSE_VALUES = { ["false"] = true, no = true, ["0"] = true, [""] = true }
+
+--- Reads stack/direction (and removes them): true for a stacked layout.
+local function stacked_layout(attrs)
+  local stack, direction = attrs.stack, attrs.direction
+  attrs.stack, attrs.direction = nil, nil
+
+  local from_stack
+  if stack then
+    local value = stack:lower()
+    if TRUE_VALUES[value] then
+      from_stack = true
+    elseif FALSE_VALUES[value] then
+      from_stack = false
+    else
+      warn('unknown stack value "' .. stack .. '", expected true or false; using false')
+      from_stack = false
+    end
+  end
+
+  local from_direction
+  if direction then
+    local value = direction:lower()
+    if value == "horizontal" then
+      from_direction = true
+    elseif value == "vertical" then
+      from_direction = false
+    else
+      warn('unknown direction "' .. direction .. '", expected vertical or horizontal; using vertical')
+      from_direction = false
+    end
+  end
+
+  if from_stack ~= nil and from_direction ~= nil and from_stack ~= from_direction then
+    warn('stack="' .. stack .. '" and direction="' .. direction .. '" disagree; using direction')
+    return from_direction
+  end
+  if from_direction ~= nil then
+    return from_direction
+  end
+  return from_stack == true
+end
+
 --- Collects the per-column options from the div attributes and removes
 -- them, so that only the other attributes stay in `attrs`.
 local function process_attributes(attrs)
   local sides = { left = {}, right = {} }
+
+  -- size is an alias of width
+  if attrs.size then
+    if attrs.width then
+      warn('both width="' .. attrs.width .. '" and size="' .. attrs.size .. '" given; using width')
+    else
+      attrs.width = attrs.size
+    end
+    attrs.size = nil
+  end
 
   for _, name in ipairs(COLUMN_ATTRS) do
     if attrs[name] then
@@ -304,7 +386,7 @@ end
 --- HTML: width and colours go into one inline style (Pandoc writes a
 -- `width` attribute as a style too, and keeps only one of the two when
 -- both are present).
-local function html_column(content, class_name, side)
+local function html_column(content, class_name, side, stacked)
   local classes = pandoc.List({ "column", class_name })
 
   local fit = side.fit and fit_mode(side.fit) or "none"
@@ -317,7 +399,18 @@ local function html_column(content, class_name, side)
     content = mark_fit_blocks(content)
   end
 
-  local style = { "width:" .. (side.width or "50%") }
+  -- Side by side, width is the column width. Stacked, every panel is full
+  -- width and width is the panel height (a flex-basis, which can shrink to
+  -- leave room for the gap between the panels).
+  local style
+  if stacked then
+    style = { "width:100%" }
+    if side.width then
+      style[#style + 1] = "flex: 0 1 " .. side.width
+    end
+  else
+    style = { "width:" .. (side.width or "50%") }
+  end
   if side.bg then
     style[#style + 1] = "--col-bg: " .. side.bg
   end
@@ -370,9 +463,19 @@ function Div(div)
   end
 
   local html = html_output()
+  local stacked = stacked_layout(div.attributes)
   local sides, border, attrs = process_attributes(div.attributes)
   local left_content = slice(div.content, 1, ruler_pos - 1)
   local right_content = slice(div.content, ruler_pos + 1)
+
+  -- Stacked, outside HTML: the first part, then the second, no columns
+  if stacked and not html then
+    local blocks = left_content .. right_content
+    if div.identifier ~= "" then
+      return pandoc.Div(blocks, pandoc.Attr(div.identifier))
+    end
+    return blocks
+  end
 
   -- The outer div keeps the user's classes (twocol, onlytextwidth, ...)
   local outer_classes = pandoc.List({ "columns" })
@@ -382,13 +485,26 @@ function Div(div)
   if html then
     css_needed = true
     columns = pandoc.List({
-      html_column(left_content, "left-content", sides.left),
-      html_column(right_content, "right-content", sides.right),
+      html_column(left_content, "left-content", sides.left, stacked),
+      html_column(right_content, "right-content", sides.right, stacked),
     })
+    if stacked then
+      outer_classes:insert("twocol-stack")
+    end
+    -- In Reveal.js, the block takes the height left on the slide when an
+    -- image is fitted, or when stacked panels have a size
+    local fitted = columns[1].classes:includes("twocol-fit") or columns[2].classes:includes("twocol-fit")
+    if fitted or (stacked and (sides.left.width or sides.right.width)) then
+      outer_classes:insert("twocol-fill")
+    end
     -- A whole-block border is inherited by both columns, unless a column
     -- sets its own left-border/right-border
     if border then
-      attrs.style = border_style(border) .. ";"
+      local style = attrs.style or ""
+      if style ~= "" and not style:match(";%s*$") then
+        style = style .. ";"
+      end
+      attrs.style = (style ~= "" and style .. " " or "") .. border_style(border) .. ";"
     end
   else
     columns = pandoc.List({
