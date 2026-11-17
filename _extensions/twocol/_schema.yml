@@ -1,0 +1,55 @@
+$schema: https://m.canouil.dev/quarto-wizard/assets/schema/v1/extension-schema.json
+
+classes:
+  twocol:
+    description: "Create two columns from one div, using a horizontal rule (---) as the column separator."
+
+attributes:
+  twocol:
+    width:
+      type: string
+      default: "50%,50%"
+      description: "Column widths. Use one value for both columns or comma-separated left/right values. Default 50% each in HTML only."
+    align:
+      type: string
+      default: "top,top"
+      description: "Vertical alignment: top, top-baseline, center or bottom. One value for both columns or comma-separated left/right values. Default top in HTML only."
+    fit:
+      type: string
+      default: "none"
+      description: "HTML and Reveal.js only. Fit the images of a column to its space: none, contain (whole image visible) or cover (fill and crop). One value or comma-separated left/right values. An image marked .r-stretch in a column is a shortcut for contain."
+    left-bg:
+      type: string
+      description: "HTML and Reveal.js only. Background colour of the left column."
+      completion:
+        type: color
+    right-bg:
+      type: string
+      description: "HTML and Reveal.js only. Background colour of the right column."
+      completion:
+        type: color
+    left-fg:
+      type: string
+      description: "HTML and Reveal.js only. Text colour of the left column."
+      completion:
+        type: color
+    right-fg:
+      type: string
+      description: "HTML and Reveal.js only. Text colour of the right column."
+      completion:
+        type: color
+    left-border:
+      type: string
+      description: "HTML and Reveal.js only. Border colour of the left column, or none."
+      completion:
+        type: color
+    right-border:
+      type: string
+      description: "HTML and Reveal.js only. Border colour of the right column, or none."
+      completion:
+        type: color
+    border:
+      type: string
+      description: "HTML and Reveal.js only. Border colour of both columns, or none. A column's own left-border/right-border takes precedence."
+      completion:
+        type: color
